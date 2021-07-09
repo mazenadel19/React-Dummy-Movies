@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 
 import MoviesList from './components/MoviesList'
 import './App.css'
+import AddMovie from './components/AddMovie'
 
 function App() {
 	const [movies, setMovies] = useState([])
@@ -14,23 +15,28 @@ function App() {
 		setError(null)
 		setIsLoading(true)
 		try {
-			const response = await fetch('https://swapi.dev/api/films/')
+			const response = await fetch(
+				'https://react-dummy-movies-bf735-default-rtdb.europe-west1.firebasedatabase.app/movies.json',
+			)
 
 			if (!response.ok) {
 				throw new Error('something went wrong')
 			}
 
 			const data = await response.json()
-			const transformedMovies = data.results.map(movieData => {
-				return {
-					id: movieData.episode_id,
-					title: movieData.title,
-					openingText: movieData.opening_crawl,
-					releaseDate: movieData.release_date,
-				}
-			})
+			console.log(data)
 
-			setMovies(transformedMovies)
+			const loadedMovies = []
+
+			for (const key in data) {
+				loadedMovies.push({
+					id: key,
+					title: data[key].title,
+					openingText: data[key].openingText,
+					releaseDate: data[key].releaseDate,
+				})
+			}
+			setMovies(loadedMovies)
 		} catch (error) {
 			setError(error.message)
 		}
@@ -43,6 +49,23 @@ function App() {
 		fetchMoviesHandler()
 	}, [fetchMoviesHandler])
 
+	async function addMovieHandler(movie) {
+		console.log(movie)
+		const response = await fetch(
+			'https://react-dummy-movies-bf735-default-rtdb.europe-west1.firebasedatabase.app/movies.json',
+			{
+				method: 'POST',
+				body: JSON.stringify(movie), //convert javscript to json
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			},
+		)
+		console.log(response)
+		const data = await response.json()
+		console.log(data)
+	}
+
 	let content = <p>N0 M0V!3S F3TCHED Y3T</p>
 	if (isLoading) content = <p>L0AD!NG</p>
 	if (error) content = <p>{error}</p>
@@ -50,6 +73,9 @@ function App() {
 
 	return (
 		<React.Fragment>
+			<section>
+				<AddMovie onAddMovie={addMovieHandler} />
+			</section>
 			<section>
 				<button onClick={fetchMoviesHandler}>Fetch Movies</button>
 			</section>
