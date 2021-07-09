@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import MoviesList from './components/MoviesList'
 import './App.css'
@@ -8,7 +8,9 @@ function App() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState(null)
 
-	async function fetchMoviesHandler() {
+	//used useCallback becase function are objects (non premitave type)
+	// using them as dependancy for useEffect without  useCallback will cause an infinte loop
+	const fetchMoviesHandler = useCallback(async () => {
 		setError(null)
 		setIsLoading(true)
 		try {
@@ -33,7 +35,13 @@ function App() {
 			setError(error.message)
 		}
 		setIsLoading(false)
-	}
+	}, [])
+
+	// listed fetchMoviesHandler as a depndancy cuz (usually, but not in this case) we will be using some external state inside fetchMoviesHandler and we'd want to rerender this component if the state changes
+
+	useEffect(() => {
+		fetchMoviesHandler()
+	}, [fetchMoviesHandler])
 
 	let content = <p>N0 M0V!3S F3TCHED Y3T</p>
 	if (isLoading) content = <p>L0AD!NG</p>
